@@ -154,8 +154,11 @@ void EntityInspectorPanel::DrawRigidBodyComponent(EditorContext &context,
         body->linearVelocity = Vec3(0, 0, 0);
         body->angularVelocity = Vec3(0, 0, 0);
       } else {
-        body->mass = (body->mass <= 0.0f) ? 1.0f : body->mass;
-        body->inverseMass = 1.0f / body->mass;
+        body->RecalculateMassProperties();
+        if (body->mass <= 0.0f) {
+          body->mass = 1.0f;
+          body->inverseMass = 1.0f;
+        }
       }
     }
 
@@ -197,29 +200,69 @@ void EntityInspectorPanel::DrawRigidBodyComponent(EditorContext &context,
 void EntityInspectorPanel::DrawCollidersComponent(EditorContext &context,
                                                   GameObject &entity) {
   (void)context;
-  if (!entity.rigidBody || entity.rigidBody->colliders.empty())
+  if (!entity.rigidBody)
     return;
 
   if (ImGui::CollapsingHeader("Colliders", ImGuiTreeNodeFlags_DefaultOpen)) {
     auto &colliders = entity.rigidBody->colliders;
+    if (colliders.empty()) {
+      ImGui::TextDisabled("No Colliders Attached.");
+      return;
+    }
+
+    int colliderToDelete = -1;
+    bool propertiesChanged = false;
+
     for (size_t i = 0; i < colliders.size(); ++i) {
       auto &col = colliders[i];
       ImGui::PushID(static_cast<int>(i));
 
+      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8f, 0.2f, 0.2f, 1.0f));
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                            ImVec4(1.0f, 0.3f, 0.3f, 1.0f));
+      ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                            ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
+      if (ImGui::SmallButton("X")) {
+        colliderToDelete = static_cast<int>(i);
+      }
+      ImGui::PopStyleColor(3);
+
+      ImGui::SameLine();
       if (col.type == ColliderType::Sphere) {
         ImGui::Text("Sphere Collider #%zu", i + 1);
-        ImGui::DragFloat("Radius (m)", &col.radius, 0.02f, 0.01f, 50.0f);
+        if (ImGui::DragFloat("Radius (m)", &col.radius, 0.02f, 0.01f, 50.0f)) {
+          col.RecalculateProperties();
+          propertiesChanged = true;
+        }
       } else if (col.type == ColliderType::Box) {
         ImGui::Text("Box Collider #%zu", i + 1);
         float ext[2] = {col.halfExtents.x, col.halfExtents.y};
         if (ImGui::DragFloat2("Half Extents (m)", ext, 0.02f, 0.01f, 50.0f)) {
           col.halfExtents.x = ext[0];
           col.halfExtents.y = ext[1];
+          col.RecalculateProperties();
+          propertiesChanged = true;
         }
+      }
+
+      // Local Centroid Offset (x, y)
+      float offset[2] = {col.localCentroid.x, col.localCentroid.y};
+      if (ImGui::DragFloat2("Offset (m)", offset, 0.02f)) {
+        col.localCentroid.x = offset[0];
+        col.localCentroid.y = offset[1];
+        propertiesChanged = true;
       }
 
       ImGui::PopID();
       ImGui::Separator();
+    }
+
+    if (colliderToDelete >= 0) {
+      entity.rigidBody->RemoveCollider(static_cast<size_t>(colliderToDelete));
+      ELYSIUM_INFO("Removed Collider #{} from entity: {}", colliderToDelete + 1,
+                   entity.name);
+    } else if (propertiesChanged) {
+      entity.rigidBody->RecalculateMassProperties();
     }
   }
 }
