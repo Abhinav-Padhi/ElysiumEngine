@@ -8,6 +8,8 @@
 // For use by Elysium applications
 
 #include "Application.hpp"
+#include "AudioEngine.hpp"
+#include "AudioSourceComponent.hpp"
 #include "EditorLayer.hpp"
 #include "KeyCodes.hpp"
 #include "Layer.hpp"
