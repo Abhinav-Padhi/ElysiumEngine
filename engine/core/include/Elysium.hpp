@@ -11,10 +11,14 @@
 #include "AudioEngine.hpp"
 #include "AudioSourceComponent.hpp"
 #include "EditorLayer.hpp"
+#include "EntityHandle.hpp"
+#include "GameObject.hpp"
 #include "KeyCodes.hpp"
 #include "Layer.hpp"
 #include "MouseCodes.hpp"
+#include "Scene.hpp"
 #include "Timestep.hpp"
+#include "UUID.hpp"
 
 // Events
 #include "ApplicationEvent.hpp"
