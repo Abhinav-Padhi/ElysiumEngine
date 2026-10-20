@@ -41,7 +41,8 @@ void EntityInspectorPanel::OnImGuiRender(EditorContext &context, Scene &scene,
     ImGui::SameLine();
     ImGui::Checkbox("Active", &entity.active);
 
-    ImGui::TextDisabled("Entity ID: %u", entity.id);
+    ImGui::TextDisabled("Entity ID: %llu",
+                        static_cast<unsigned long long>(static_cast<uint64_t>(entity.GetUUID())));
     ImGui::Separator();
 
     // 1. Transform Component

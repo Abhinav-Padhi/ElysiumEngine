@@ -97,6 +97,11 @@ Elysium follows a modular, decoupled engine design:
 - **Real-Time Diagnostics**:
   - In-engine **Console Panel** hooked directly into `spdlog` via a custom ring-buffered `EditorLogSink`.
   - **Stats & Profiler Panel** showing real-time FPS graphs, frame timing breakdown (Update, Physics, Render), entity counts, and draw call statistics.
+- **64-Bit UUID & Safe Entity Handles**:
+  - High-performance `UUID` class backed by hardware entropy (`std::random_device`) and standard 64-bit Mersenne Twister (`std::mt19937_64`).
+  - Persistent, unique 64-bit identifiers assigned to all `GameObject`s with full support for explicit IDs during scene deserialization.
+  - O(1) hash map scene lookups and safe deletion (`Scene::GetEntityByUUID`, `Scene::DestroyEntityByUUID`).
+  - Safe, lightweight templated `EntityHandle` reference wrapper preventing dangling pointer crashes.
 - **2D Physics Simulation**:
   - Continuous impulse-based rigid body dynamics, broadphase spatial hash grid, and narrowphase SAT collision response.
 - **Audio Subsystem**:
@@ -130,6 +135,8 @@ ElysiumEngine/
 │   │   │   ├── KeyCodes.hpp             # Platform-independent key codes
 │   │   │   ├── MouseCodes.hpp           # Platform-independent mouse codes
 │   │   │   ├── GameObject.hpp           # Entity definition and component container
+│   │   │   ├── EntityHandle.hpp         # Lightweight templated entity reference handle
+│   │   │   ├── UUID.hpp                 # 64-bit UUID class and std::hash specialization
 │   │   │   ├── Component.hpp            # Component base interface
 │   │   │   ├── SpriteRenderer.hpp       # Visual shape/sprite renderer component
 │   │   │   ├── Scene.hpp                # Scene container and physics world binding
@@ -143,6 +150,9 @@ ElysiumEngine/
 │   │       ├── Application.cpp          # Engine game loop and event distribution
 │   │       ├── AudioEngine.cpp          # Audio subsystem, sound pool & buffer cache
 │   │       ├── AudioSourceComponent.cpp # AudioSourceComponent lifecycle & spatialization
+│   │       ├── GameObject.cpp           # GameObject lifecycle & logging
+│   │       ├── Scene.cpp                # Scene entity registry and physics integration
+│   │       ├── UUID.cpp                 # 64-bit Mersenne Twister & entropy generator
 │   │       ├── Window.cpp               # SFML 3 event pump and translation
 │   │       ├── Layer.cpp                # Layer base implementation
 │   │       ├── LayerStack.cpp           # LayerStack management
@@ -191,7 +201,9 @@ ElysiumEngine/
     ├── BoundaryTest.cpp
     ├── BroadPhasePerformanceTest.cpp
     ├── FrictionTest.cpp
-    └── PhysicsPerformanceTest.cpp
+    ├── PhysicsPerformanceTest.cpp
+    ├── RigidBodyDecouplingTest.cpp
+    └── UUIDEntityTest.cpp
 ```
 
 ---
@@ -292,11 +304,39 @@ The **Scene Viewport Panel** (`SceneViewportPanel`) achieves full decoupling bet
 ### 5. Scene, Entities & Components
 
 Game objects are represented by [`GameObject`](file:///home/mrgreenapple24/projects/ElysiumEngine/engine/core/include/GameObject.hpp):
+- **Identity & UUID**: Every `GameObject` is uniquely identified by a 64-bit [`UUID`](file:///home/mrgreenapple24/projects/ElysiumEngine/engine/core/include/UUID.hpp) (`entity->GetUUID()`). Supports explicit UUIDs upon creation for deserialization.
 - **Transform**: `position` (`Vec3`), `rotation` (`Quat`), `scale` (`Vec3`).
 - **Physics**: Optional attached `std::unique_ptr<RigidBody>`.
 - **Components**: Extensible component array (`std::vector<std::unique_ptr<Component>>`).
 - **Lookup**: Query components via `entity->GetComponent<T>()` or check existence with `entity->HasComponent<T>()`.
 - **Visuals**: Attach [`SpriteRenderer`](file:///home/mrgreenapple24/projects/ElysiumEngine/engine/core/include/SpriteRenderer.hpp) for color, rectangle sizes, or circle shapes.
+
+#### Scene Entity Registry
+[`Scene`](file:///home/mrgreenapple24/projects/ElysiumEngine/engine/core/include/Scene.hpp) maintains an internal `std::unordered_map<UUID, std::shared_ptr<GameObject>>` for fast O(1) entity management:
+```cpp
+// Look up an entity by UUID
+GameObject* entity = scene.GetEntityByUUID(uuid);
+
+// Safely destroy an entity (unregisters physics, map entry, and list)
+bool success = scene.DestroyEntityByUUID(uuid);
+```
+
+#### Safe Entity Handles (`EntityHandle`)
+To prevent dangling pointers across frames when entities are destroyed, components can use the lightweight templated [`EntityHandle<T>`](file:///home/mrgreenapple24/projects/ElysiumEngine/engine/core/include/EntityHandle.hpp):
+```cpp
+// Store handle instead of raw pointer
+Elysium::EntityHandle<GameObject> targetHandle(targetEntity->GetUUID());
+
+// Safely resolve at runtime
+if (GameObject* liveTarget = targetHandle.Resolve(&scene)) {
+    // Entity is alive and safe to access
+}
+
+// Or resolve a specific component type
+if (HealthComponent* health = targetHandle.ResolveComponent<HealthComponent>(&scene)) {
+    health->TakeDamage(10.0f);
+}
+```
 
 In the **Entity Inspector**, modifying any transform parameter automatically invokes `entity->SyncTransform()`, instantly synchronizing the physics body's position, centroid, and orientation.
 
