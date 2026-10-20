@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Component.hpp"
+#include <memory>
 
 namespace Elysium {
 
@@ -13,6 +14,7 @@ class Entity;
 class Script : public Component {
 public:
     Entity* entity = nullptr;
+    std::shared_ptr<Entity> m_EntityHolder;
 
     virtual ~Script() = default;
 

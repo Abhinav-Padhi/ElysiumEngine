@@ -2,6 +2,7 @@
 #include "Input.hpp"
 #include <algorithm>
 #include <cctype>
+#include <unordered_map>
 
 namespace Elysium {
 
@@ -11,64 +12,31 @@ namespace Elysium {
  * @return KeyCode enum value.
  */
 static KeyCode StringToKeyCode(std::string name) {
-    std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) {
-        return static_cast<char>(std::toupper(c));
-    });
+    for (char& c : name) {
+        c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
+    }
 
-    if (name == "A") return KeyCode::A;
-    if (name == "B") return KeyCode::B;
-    if (name == "C") return KeyCode::C;
-    if (name == "D") return KeyCode::D;
-    if (name == "E") return KeyCode::E;
-    if (name == "F") return KeyCode::F;
-    if (name == "G") return KeyCode::G;
-    if (name == "H") return KeyCode::H;
-    if (name == "I") return KeyCode::I;
-    if (name == "J") return KeyCode::J;
-    if (name == "K") return KeyCode::K;
-    if (name == "L") return KeyCode::L;
-    if (name == "M") return KeyCode::M;
-    if (name == "N") return KeyCode::N;
-    if (name == "O") return KeyCode::O;
-    if (name == "P") return KeyCode::P;
-    if (name == "Q") return KeyCode::Q;
-    if (name == "R") return KeyCode::R;
-    if (name == "S") return KeyCode::S;
-    if (name == "T") return KeyCode::T;
-    if (name == "U") return KeyCode::U;
-    if (name == "V") return KeyCode::V;
-    if (name == "W") return KeyCode::W;
-    if (name == "X") return KeyCode::X;
-    if (name == "Y") return KeyCode::Y;
-    if (name == "Z") return KeyCode::Z;
+    static const std::unordered_map<std::string, KeyCode> s_KeyMap = {
+        {"A", KeyCode::A}, {"B", KeyCode::B}, {"C", KeyCode::C}, {"D", KeyCode::D},
+        {"E", KeyCode::E}, {"F", KeyCode::F}, {"G", KeyCode::G}, {"H", KeyCode::H},
+        {"I", KeyCode::I}, {"J", KeyCode::J}, {"K", KeyCode::K}, {"L", KeyCode::L},
+        {"M", KeyCode::M}, {"N", KeyCode::N}, {"O", KeyCode::O}, {"P", KeyCode::P},
+        {"Q", KeyCode::Q}, {"R", KeyCode::R}, {"S", KeyCode::S}, {"T", KeyCode::T},
+        {"U", KeyCode::U}, {"V", KeyCode::V}, {"W", KeyCode::W}, {"X", KeyCode::X},
+        {"Y", KeyCode::Y}, {"Z", KeyCode::Z},
+        {"SPACE", KeyCode::Space}, {"ENTER", KeyCode::Enter}, {"RETURN", KeyCode::Enter},
+        {"ESCAPE", KeyCode::Escape}, {"ESC", KeyCode::Escape},
+        {"LSHIFT", KeyCode::LShift}, {"SHIFT", KeyCode::LShift}, {"RSHIFT", KeyCode::RShift},
+        {"LCTRL", KeyCode::LControl}, {"CTRL", KeyCode::LControl}, {"RCTRL", KeyCode::RControl},
+        {"TAB", KeyCode::Tab}, {"BACKSPACE", KeyCode::Backspace},
+        {"LEFT", KeyCode::Left}, {"RIGHT", KeyCode::Right}, {"UP", KeyCode::Up}, {"DOWN", KeyCode::Down},
+        {"0", KeyCode::Num0}, {"1", KeyCode::Num1}, {"2", KeyCode::Num2}, {"3", KeyCode::Num3},
+        {"4", KeyCode::Num4}, {"5", KeyCode::Num5}, {"6", KeyCode::Num6}, {"7", KeyCode::Num7},
+        {"8", KeyCode::Num8}, {"9", KeyCode::Num9}
+    };
 
-    if (name == "SPACE") return KeyCode::Space;
-    if (name == "ENTER" || name == "RETURN") return KeyCode::Enter;
-    if (name == "ESCAPE" || name == "ESC") return KeyCode::Escape;
-    if (name == "LSHIFT" || name == "SHIFT") return KeyCode::LShift;
-    if (name == "RSHIFT") return KeyCode::RShift;
-    if (name == "LCTRL" || name == "CTRL") return KeyCode::LControl;
-    if (name == "RCTRL") return KeyCode::RControl;
-    if (name == "TAB") return KeyCode::Tab;
-    if (name == "BACKSPACE") return KeyCode::Backspace;
-
-    if (name == "LEFT") return KeyCode::Left;
-    if (name == "RIGHT") return KeyCode::Right;
-    if (name == "UP") return KeyCode::Up;
-    if (name == "DOWN") return KeyCode::Down;
-
-    if (name == "0") return KeyCode::Num0;
-    if (name == "1") return KeyCode::Num1;
-    if (name == "2") return KeyCode::Num2;
-    if (name == "3") return KeyCode::Num3;
-    if (name == "4") return KeyCode::Num4;
-    if (name == "5") return KeyCode::Num5;
-    if (name == "6") return KeyCode::Num6;
-    if (name == "7") return KeyCode::Num7;
-    if (name == "8") return KeyCode::Num8;
-    if (name == "9") return KeyCode::Num9;
-
-    return KeyCode::Unknown;
+    auto it = s_KeyMap.find(name);
+    return (it != s_KeyMap.end()) ? it->second : KeyCode::Unknown;
 }
 
 /**

@@ -29,6 +29,9 @@ struct Vector2 {
     Vector2& operator-=(const Vector2& o) { x -= o.x; y -= o.y; return *this; }
     Vector2& operator*=(float scalar)     { x *= scalar; y *= scalar; return *this; }
 
+    bool operator==(const Vector2& o) const { return x == o.x && y == o.y; }
+    bool operator!=(const Vector2& o) const { return !(*this == o); }
+
     float MagnitudeSquared() const { return x * x + y * y; }
     float Magnitude() const        { return std::sqrt(MagnitudeSquared()); }
 
@@ -40,6 +43,10 @@ struct Vector2 {
     float Dot(const Vector2& o) const { return x * o.x + y * o.y; }
     float DistanceTo(const Vector2& o) const { return (*this - o).Magnitude(); }
 };
+
+inline Vector2 operator*(float scalar, const Vector2& v) {
+    return {v.x * scalar, v.y * scalar};
+}
 
 /**
  * @struct ColorRGBA

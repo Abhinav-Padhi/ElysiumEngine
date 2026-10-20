@@ -217,7 +217,8 @@ public:
             throw std::runtime_error("Cannot attach script to invalid Entity");
         }
         T& script = obj->AddComponent<T>(std::forward<Args>(args)...);
-        script.entity = this;
+        script.m_EntityHolder = std::make_shared<Entity>(obj);
+        script.entity = script.m_EntityHolder.get();
         script.OnCreate();
         return script;
     }
