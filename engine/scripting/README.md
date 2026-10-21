@@ -14,7 +14,7 @@ The `engine/scripting` module provides a high-level, Godot-style C++ wrapper API
 | [`ScriptingWorld.hpp`](include/ScriptingWorld.hpp) | [`ScriptingWorld.cpp`](src/ScriptingWorld.cpp) | One-line spawning helpers (`SpawnBox`, `SpawnCircle`), entity queries, and world bounds/gravity settings. |
 | [`ScriptingInput.hpp`](include/ScriptingInput.hpp) | [`ScriptingInput.cpp`](src/ScriptingInput.cpp) | High-level keyboard and mouse polling with keycode and string name overloads. |
 | [`ScriptEngine.hpp`](include/ScriptEngine.hpp) | [`ScriptEngine.cpp`](src/ScriptEngine.cpp) | Central subsystem coordinating scene transitions, script lifecycle execution, and future language bindings. |
-| [`ScriptTypes.hpp`](include/ScriptTypes.hpp) | — | 2D math primitives (`Vector2`) with arithmetic operators, and color presets (`ColorRGBA`). |
+| [`ScriptTypes.hpp`](include/ScriptTypes.hpp) | — | Scripting type aliases for 2D vectors (`Vector2` / `Vec2`, defined in `CoreMath.hpp`) and color presets (`ColorRGBA`). |
 
 ---
 
