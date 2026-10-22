@@ -87,7 +87,7 @@ public:
       scene.AddGameObject(ball);
     }
 
-    // 3. Dynamic Box with Script Wrapper (WASD Controls)
+    // 2. Dynamic Box with Script Wrapper (WASD Controls)
     {
       auto playerBox = Elysium::SpawnBox("Scripted Box (WASD)", 8.0f, 4.0f, 1.0f, 1.0f);
       playerBox.AttachScript<BoxController>();
