@@ -2,6 +2,7 @@
 #include "Collider.hpp"
 #include "Log.h"
 #include <algorithm>
+#include "AudioSourceComponent.hpp"
 
 namespace Elysium {
 
@@ -71,6 +72,15 @@ void SceneHierarchyPanel::OnImGuiRender(EditorContext &context, Scene &scene,
         context.selectedEntity = entity;
         ELYSIUM_INFO("Created Static Platform at ({:.2f}, {:.2f})",
                      entity->position.x, entity->position.y);
+      }
+      if (ImGui::MenuItem("Create Audio Source")) {
+        auto entity = std::make_shared<GameObject>("Audio Source");
+        entity->position =
+            Vec3(context.camera.center.x, context.camera.center.y, 0.0f);
+        auto &as = entity->AddComponent<AudioSourceComponent>();
+        scene.AddGameObject(entity);
+        context.selectedEntity = entity;
+        ELYSIUM_INFO("Added AudioSourceComponent to entity: {}", entity->GetComponent<AudioSourceComponent>() != nullptr);
       }
 
       ImGui::EndPopup();
